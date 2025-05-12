@@ -1,30 +1,39 @@
 import asyncio
 import json
 import uvicorn
-from multiprocessing import Process
+from fastapi import FastAPI
 
 from config import CONFIG_FILE
-from git_poller import poll_forever
-from api import gitter_app
+from git_poller import GitPoller
+from storage import Storage
 
 
-def start_api():
-    uvicorn.run(gitter_app, host="0.0.0.0", port=8001)
+storage = Storage()
+
+gitter_app = FastAPI()
+
+# REST API endpoints
+# Returns average time [s] of event for every configured repo by event type
+@gitter_app.get("/stats")
+def stats():
+    return storage.get_average_durations()
 
 
-def start_poller(repos_to_poll):
-    asyncio.run(poll_forever(repos_to_poll))
+async def main():
 
+    storage.load_storage()
+    git_poller = GitPoller(storage)
 
-if __name__ == "__main__":
     with open(CONFIG_FILE) as f:
         repos = json.load(f)["repos"]
 
-    api_process = Process(target=start_api)
-    poller_process = Process(target=start_poller, args=(repos,))
+    asyncio.create_task(git_poller.poll_forever(repos))
 
-    api_process.start()
-    poller_process.start()
+    config = uvicorn.Config(app=gitter_app, host="0.0.0.0", port=8000)
+    server = uvicorn.Server(config)
+    await server.serve()
 
-    api_process.join()
-    poller_process.join()
+if __name__ == "__main__":
+    asyncio.run(main())
+
+
