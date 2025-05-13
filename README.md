@@ -13,6 +13,8 @@ To install, run:
 <br><br>
 
 #### Run:
+Edit `config_repos.json` with desired repos in the format `user/repo_name`
+
 `poetry run python main.py`
 <br><br>
 
