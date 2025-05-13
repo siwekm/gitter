@@ -14,7 +14,7 @@ class Storage:
         self.event_store: Dict[str, Deque[Tuple[str, str, datetime]]] = defaultdict(deque)
 
     def id_exists(self, repo_name: str, event_id: str):
-        return event_id in self.event_store[repo_name]
+        return any(eid == event_id for eid, _, _ in self.event_store[repo_name])
 
     # Load events from STORAGE_FILE and keep in event_store cache
     def load_storage(self) -> None:

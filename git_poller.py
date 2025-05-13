@@ -26,8 +26,10 @@ class GitPoller:
         headers = {
             "Accept": "application/vnd.github.v3+json",
             "User-Agent": "gitter",
-            "Authorization": f"Bearer {GITHUB_TOKEN}" if GITHUB_TOKEN else None
         }
+
+        if GITHUB_TOKEN:
+            headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
 
         print(f"Fetching events for repo: {repo}, page: {page}")
         async with session.get(url, headers=headers) as response:
